@@ -1,6 +1,5 @@
 package jobportal.Service;
 
-
 import jobportal.DTO.UserRequestDTO;
 import jobportal.DTO.UserResponseDTO;
 import jobportal.Entity.Role;
@@ -13,26 +12,55 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    UserRepository userRepository;
-    RolesRepository rolesRepository;
-    PasswordEncoder passwordEncoder;
-    public AuthService(UserRepository userRepository, RolesRepository rolesRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository=userRepository;
-        this.rolesRepository=rolesRepository;
-        this.passwordEncoder=passwordEncoder;
-    }
-    public UserResponseDTO register(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEnabled(true);
-        Role role= rolesRepository.findByName("ADMIN");
-        user.getRoles().add(role);
-        User value= userRepository.save(user);
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setUsername(value.getUsername());
-        userResponseDTO.setMessage("Successfully registered");
-        return userResponseDTO;
 
+    private final UserRepository userRepository;
+    private final RolesRepository rolesRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthService(UserRepository userRepository,
+                       RolesRepository rolesRepository,
+                       PasswordEncoder passwordEncoder) {
+
+        this.userRepository = userRepository;
+        this.rolesRepository = rolesRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public UserResponseDTO register(UserRequestDTO userRequestDTO) {
+
+        // Check duplicate username
+        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        // Check duplicate email
+        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        User user = new User();
+
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        user.setEnabled(true);
+
+        // Assign USER role
+        Role role = rolesRepository.findByName("USER");
+
+        if (role == null) {
+            throw new RuntimeException("USER role not found in database");
+        }
+
+        user.getRoles().add(role);
+
+        User savedUser = userRepository.save(user);
+
+        UserResponseDTO response = new UserResponseDTO();
+        response.setUsername(savedUser.getUsername());
+        response.setEmail(savedUser.getEmail());
+        response.setMessage("Successfully registered");
+
+        return response;
     }
 }

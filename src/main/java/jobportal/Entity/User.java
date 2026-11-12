@@ -1,6 +1,8 @@
 package jobportal.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +23,9 @@ public class User {
     @Column(nullable = false)
     private String password;
     private Boolean enabled= true;
+
+    @Column(unique = true)
+    private String email;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user roles",

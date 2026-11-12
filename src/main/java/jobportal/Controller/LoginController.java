@@ -1,6 +1,7 @@
 package jobportal.Controller;
 
 
+import jakarta.validation.Valid;
 import jobportal.DTO.AuthRequest;
 import jobportal.DTO.AuthResponse;
 
@@ -24,9 +25,9 @@ public class LoginController {
         this.authenticationManager = authenticationManager;
     }
     @PostMapping("/login")
-    public AuthResponse loginController(@RequestBody AuthRequest authRequest ){
+    public AuthResponse loginController(@Valid @RequestBody AuthRequest authRequest ){
         Authentication  authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(
-                authRequest.getUsername(), authRequest.getPassword()
+                authRequest.getEmail(), authRequest.getPassword()
         );
         Authentication authenticationPrinciple=authenticationManager.authenticate(authenticationRequest);
         String token= loginService.generateToken(authenticationPrinciple);
